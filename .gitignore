@@ -3,3 +3,4 @@
 /records
 /frames/*
 !/frames/.gitkeep
+__pycache__/
