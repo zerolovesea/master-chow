@@ -1,4 +1,4 @@
-# Master Zhou: Your Cyber Fortune Teller
+# Master Chow: Your Cyber Fortune Teller
 **This project is inspired by [narrator: David Attenborough narrates your life](https://github.com/cbh123/narrator), thanks to the original author's contribution.**
 
 ![](assets/bagua.jpg)
