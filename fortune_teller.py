@@ -2,84 +2,55 @@ import cv2
 import time
 import os
 
+from app.movement import MovementDetect 
 from app.audio import play_audio
 from app.tools import encode_image, analyze_image
 
-ELEVENLABS_API_KEY = '6aadc5ea99cfd3143ff14814016bec63'
-
+ELEVENLABS_API_KEY = '6aadc5ea99cfd3143ff14814016bec63' # Change this to your Eleven Labs API key
 os.environ["ELEVEN_API_KEY"] = ELEVENLABS_API_KEY
 
 def main():
-    camera = cv2.VideoCapture(0)
+    detector = MovementDetect()  
 
-    width  = int(camera.get(cv2.CAP_PROP_FRAME_WIDTH))
-    height = int(camera.get(cv2.CAP_PROP_FRAME_HEIGHT))
-    size = width, height
-
-
-    fps = 2
-    pre_frame = None
     script = []  
 
-    while (1):
-        start = time.time()
+    while True:
+        movement_detected = detector.detect()  # Detect movement
 
-        ret, frame = camera.read()
-        gray_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+        if movement_detected:
+            print("OH! Here you are! 🚀 \nDear traveler from afar, let me take a look at how your fortune is today.\n")
 
-        if not ret:
-            print("Failed to open camera")
-            break
+            # Capture a frame from the camera
+            ret, frame = detector.camera.read()
+            if not ret:
+                print("Failed to capture frame from camera.")
+                break
 
-        end = time.time()
-        seconds = end - start
+            image_path = 'frames/frame.jpg'
+            if not os.path.exists('frames'):
+                os.makedirs('frames')
+            cv2.imwrite(image_path, frame)
 
-        if seconds < 1.0 / fps:
-            time.sleep(1.0 / fps - seconds)
+            base64_image = encode_image(image_path)
 
-        gray_frame = cv2.resize(gray_frame, (480, 480))
-        gray_frame = cv2.GaussianBlur(gray_frame, (21, 21), 0)
+            # Analyze the image
+            print("🥸 Master Chow is watching you...")
+            analysis = analyze_image(base64_image, script)
 
-        if pre_frame is None:
-            pre_frame = gray_frame
-        else:
-            img_delta = cv2.absdiff(pre_frame, gray_frame)
-            thresh = cv2.threshold(img_delta, 30, 255, cv2.THRESH_BINARY)[1]
-            thresh = cv2.dilate(thresh, None, iterations=2)
-            contours, hierarchy = cv2.findContours(thresh.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-            for c in contours:
-                if cv2.contourArea(c) < 1000:
-                    continue
-                else:
-                    print("OH! Here you are! 🚀 \nDear traveler from afar, let me take a look at how your fortune is today.\n")
+            print("🥸 Master Chow says:")
+            print(analysis)
 
-                    image_path = os.path.join(os.getcwd(), "frames", "frame.jpg")
-                    image_path = 'frames/frame.jpg'
-                    cv2.imwrite(image_path, frame)
+            play_audio(analysis)
 
-                    base64_image = encode_image(image_path)
+            script.append({"role": "assistant", "content": analysis})
 
-                    # Analyzing the image
-                    print("🥸 Master Chow is watching you...")
-                    analysis = analyze_image(base64_image, script)
-
-                    print("🥸 Master Chow says:")
-                    print(analysis)
-
-                    play_audio(analysis)
-
-                    script.append({"role": "assistant", "content": analysis})
-
-                    # Wait for 5 seconds
-                    time.sleep(5)
-
-                    break
-            pre_frame = gray_frame
+            # Wait for 5 seconds before detecting movement agains
+            time.sleep(5)
 
         if cv2.waitKey(1) & 0xFF == ord('q'):
             break
 
-    camera.release()
+    detector.camera.release()
     cv2.destroyAllWindows()
 
 if __name__ == "__main__":
