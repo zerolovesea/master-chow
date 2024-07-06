@@ -16,6 +16,8 @@ Will today be smooth sailing at work? The mysterious power of the East will give
 
 Clone the project and activate Python virtual environment:
 
+PS:The Python version should be 3.11 or later.
+
 ```bash
 python3 -m pip install virtualenv
 python3 -m virtualenv venv
