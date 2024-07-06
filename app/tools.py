@@ -16,7 +16,9 @@ def generate_new_line(base64_image):
                 {"type": "text", "text": "Describe this image"},
                 {
                     "type": "image_url",
-                    "image_url": f"data:image/jpeg;base64,{base64_image}",
+                    "image_url": {
+                        "url": f"data:image/jpeg;base64,{base64_image}"
+                        },
                 },
             ],
         },
@@ -24,7 +26,7 @@ def generate_new_line(base64_image):
 
 def analyze_image(base64_image, script):
     response = client.chat.completions.create(
-        model="gpt-4-vision-preview",
+        model="gpt-4o",
         messages=[
             {
                 "role": "system",
@@ -38,5 +40,6 @@ def analyze_image(base64_image, script):
         + generate_new_line(base64_image),
         max_tokens=500,
     )
+
     response_text = response.choices[0].message.content
     return response_text
